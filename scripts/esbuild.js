@@ -57,8 +57,16 @@ const bundleDefaults = {
     'google-libphonenumber',
     'moment',
     'quill',
-    // '@automerge/automerge',
-    // '@automerge/automerge-wasm',
+    // 'prosemirror-view',
+    // '@automerge/prosemirror',
+    'prosemirror-model',
+    'prosemirror-view',
+    'prosemirror-state',
+    'prosemirror-transform',
+    'prosemirror-schema-basic',
+    'prosemirror-commands',
+    '@automerge/automerge',
+    '@automerge/automerge-wasm',
     // '@blocknote/react',
     // '@blocknote/core',
     // Uses fast-glob and dynamic requires
@@ -160,7 +168,7 @@ async function main() {
   await build({
     appConfig: {
       ...nodeDefaults,
-      plugins: [wasmPlugin],
+      // plugins: [wasmPlugin],
       format: 'cjs',
       mainFields: ['browser', 'main'],
       entryPoints: glob
@@ -173,7 +181,7 @@ async function main() {
     },
     preloadConfig: {
       ...bundleDefaults,
-      plugins: [wasmPlugin],
+      // plugins: [wasmPlugin],
       mainFields: ['browser', 'main'],
       entryPoints: [path.join(ROOT_DIR, 'ts', 'windows', 'main', 'preload.ts')],
       outfile: path.join(ROOT_DIR, 'preload.bundle.js'),
@@ -185,7 +193,7 @@ async function sandboxedEnv() {
   await build({
     appConfig: {
       ...sandboxedBrowserDefaults,
-      plugins: [wasmPlugin],
+      // plugins: [wasmPlugin],
       mainFields: ['browser', 'main'],
       entryPoints: [
         path.join(ROOT_DIR, 'ts', 'windows', 'about', 'app.tsx'),
@@ -198,7 +206,7 @@ async function sandboxedEnv() {
     },
     preloadConfig: {
       ...sandboxedPreloadDefaults,
-      plugins: [wasmPlugin],
+      // plugins: [wasmPlugin],
       mainFields: ['main'],
       entryPoints: [
         path.join(ROOT_DIR, 'ts', 'windows', 'about', 'preload.ts'),
