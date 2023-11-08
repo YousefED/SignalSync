@@ -7,7 +7,6 @@ import type { ReactChild, ReactNode, RefObject, UIEvent } from 'react';
 import React from 'react';
 
 import type { ReadonlyDeep } from 'type-fest';
-import { ScrollDownButton, ScrollDownButtonVariant } from './ScrollDownButton';
 
 import type { ConversationType } from '../../state/ducks/conversations';
 import type { PreferredBadgeSelectorType } from '../../state/selectors/badges';
@@ -23,6 +22,11 @@ import {
 } from '../../hooks/useScrollLock';
 import { SizeObserver } from '../../hooks/useSizeObserver';
 import type { PropsType as SmartContactSpoofingReviewDialogPropsType } from '../../state/smart/ContactSpoofingReviewDialog';
+import type {
+  AttachmentDraftType,
+  InMemoryAttachmentDraftType,
+} from '../../types/Attachment';
+import type { DraftBodyRanges } from '../../types/BodyRange';
 import { ContactSpoofingType } from '../../util/contactSpoofing';
 import { MINUTE } from '../../util/durations';
 import type { GroupNameCollisionsWithIdsByTitle } from '../../util/groupMemberNameCollisions';
@@ -42,6 +46,7 @@ import {
 import type { FullJSXType } from '../Intl';
 import { Intl } from '../Intl';
 import { NewlyCreatedGroupInvitedContactsDialog } from '../NewlyCreatedGroupInvitedContactsDialog';
+import { DocView } from './DocViewAM';
 import { ErrorBoundary } from './ErrorBoundary';
 import { LastSeenIndicator } from './LastSeenIndicator';
 import { TimelineFloatingHeader } from './TimelineFloatingHeader';
@@ -52,7 +57,7 @@ const AT_BOTTOM_THRESHOLD = 15;
 const AT_BOTTOM_DETECTOR_STYLE = { height: AT_BOTTOM_THRESHOLD };
 
 const MIN_ROW_HEIGHT = 18;
-const SCROLL_DOWN_BUTTON_THRESHOLD = 8;
+// const SCROLL_DOWN_BUTTON_THRESHOLD = 8;
 const LOAD_NEWER_THRESHOLD = 5;
 
 export type WarningType = ReadonlyDeep<
@@ -175,6 +180,16 @@ export type PropsActionsType = {
     }>
   ) => void;
   scrollToOldestUnreadMention: (conversationId: string) => unknown;
+  sendMultiMediaMessage: (
+    conversationId: string,
+    options: {
+      draftAttachments?: ReadonlyArray<AttachmentDraftType>;
+      bodyRanges?: DraftBodyRanges;
+      message?: string;
+      timestamp?: number;
+      voiceNoteAttachment?: InMemoryAttachmentDraftType;
+    }
+  ) => unknown;
 };
 
 export type PropsType = PropsDataType &
@@ -200,7 +215,7 @@ type SnapshotType =
   | { scrollTop: number }
   | { scrollBottom: number };
 
-export class Timeline extends React.Component<
+export class DocTimeline extends React.Component<
   PropsType,
   StateType,
   SnapshotType
@@ -286,10 +301,10 @@ export class Timeline extends React.Component<
     }
   };
 
-  private onClickScrollDownButton = (): void => {
-    this.scrollerLock.onUserInterrupt('onClickScrollDownButton');
-    this.scrollDown(false);
-  };
+  // private onClickScrollDownButton = (): void => {
+  //   this.scrollerLock.onUserInterrupt('onClickScrollDownButton');
+  //   this.scrollDown(false);
+  // };
 
   private scrollDown = (setFocus?: boolean): void => {
     if (this.scrollerLock.isLocked()) {
@@ -457,9 +472,12 @@ export class Timeline extends React.Component<
           }
         }
 
-        // oldestPartiallyVisibleMessageId &&
-        // oldestPartiallyVisibleMessageId === items[0]
-        if (!messageLoadingState && !haveOldest) {
+        if (
+          !messageLoadingState &&
+          !haveOldest // &&
+          // oldestPartiallyVisibleMessageId &&
+          // oldestPartiallyVisibleMessageId === items[0]
+        ) {
           loadOlderMessages(id, items[0]);
         }
       };
@@ -809,21 +827,21 @@ export class Timeline extends React.Component<
       renderHeroRow,
       renderItem,
       renderMiniPlayer,
-      renderTypingBubble,
+      // _renderTypingBubble,
       reviewGroupMemberNameCollision,
       reviewMessageRequestNameCollision,
-      scrollToOldestUnreadMention,
+      // scrollToOldestUnreadMention,
       shouldShowMiniPlayer,
       theme,
       totalUnseen,
-      unreadCount,
-      unreadMentionsCount,
+      // unreadCount,
+      // unreadMentionsCount,
     } = this.props;
     const {
       scrollLocked,
       hasRecentlyScrolled,
       lastMeasuredWarningHeight,
-      newestBottomVisibleMessageId,
+      // newestBottomVisibleMessageId,
       oldestPartiallyVisibleMessageId,
       widthBreakpoint,
     } = this.state;
@@ -834,30 +852,30 @@ export class Timeline extends React.Component<
       return null;
     }
 
-    const areThereAnyMessages = items.length > 0;
-    const areAnyMessagesUnread = Boolean(unreadCount);
-    const areAnyMessagesBelowCurrentPosition =
-      !haveNewest ||
-      Boolean(
-        newestBottomVisibleMessageId &&
-          newestBottomVisibleMessageId !== last(items)
-      );
-    const areSomeMessagesBelowCurrentPosition =
-      !haveNewest ||
-      (newestBottomVisibleMessageId &&
-        !items
-          .slice(-SCROLL_DOWN_BUTTON_THRESHOLD)
-          .includes(newestBottomVisibleMessageId));
+    // const areThereAnyMessages = items.length > 0;
+    // const areAnyMessagesUnread = Boolean(unreadCount);
+    // const areAnyMessagesBelowCurrentPosition =
+    //   !haveNewest ||
+    //   Boolean(
+    //     newestBottomVisibleMessageId &&
+    //       newestBottomVisibleMessageId !== last(items)
+    //   );
+    // const areSomeMessagesBelowCurrentPosition =
+    //   !haveNewest ||
+    //   (newestBottomVisibleMessageId &&
+    //     !items
+    //       .slice(-SCROLL_DOWN_BUTTON_THRESHOLD)
+    //       .includes(newestBottomVisibleMessageId));
 
-    const areUnreadBelowCurrentPosition = Boolean(
-      areThereAnyMessages &&
-        areAnyMessagesUnread &&
-        areAnyMessagesBelowCurrentPosition
-    );
-    const shouldShowScrollDownButtons = Boolean(
-      areThereAnyMessages &&
-        (areUnreadBelowCurrentPosition || areSomeMessagesBelowCurrentPosition)
-    );
+    // const areUnreadBelowCurrentPosition = Boolean(
+    //   areThereAnyMessages &&
+    //     areAnyMessagesUnread &&
+    //     areAnyMessagesBelowCurrentPosition
+    // );
+    // const shouldShowScrollDownButtons = Boolean(
+    //   areThereAnyMessages &&
+    //     (areUnreadBelowCurrentPosition || areSomeMessagesBelowCurrentPosition)
+    // );
 
     let floatingHeader: ReactNode;
     // It's possible that a message was removed from `items` but we still have its ID in
@@ -953,7 +971,7 @@ export class Timeline extends React.Component<
       );
     }
 
-    const warning = Timeline.getWarning(this.props, this.state);
+    const warning = DocTimeline.getWarning(this.props, this.state);
     let headerElements: ReactNode;
     if (warning || shouldShowMiniPlayer) {
       let text: ReactChild | undefined;
@@ -1141,17 +1159,24 @@ export class Timeline extends React.Component<
                 >
                   {haveOldest && (
                     <>
-                      {Timeline.getWarning(this.props, this.state) && (
+                      {DocTimeline.getWarning(this.props, this.state) && (
                         <div style={{ height: lastMeasuredWarningHeight }} />
                       )}
                       {renderHeroRow(id)}
                     </>
                   )}
 
-                  {/* <div>NR {items.length + ' ' + this.props.docViewEnabled}</div> */}
-                  {messageNodes}
-                  {/* <div>{items.length}</div> */}
-                  {haveNewest && renderTypingBubble(id)}
+                  {/* {messageNodes} */}
+                  <DocView
+                    messages={items as any}
+                    addMessage={msg => {
+                      this.props.sendMultiMediaMessage(this.props.id, {
+                        message: msg,
+                      });
+                    }}
+                  />
+
+                  {/* {haveNewest && renderTypingBubble(id)} */}
 
                   <div
                     className="module-timeline__messages__at-bottom-detector"
@@ -1160,7 +1185,7 @@ export class Timeline extends React.Component<
                   />
                 </div>
               </main>
-              {shouldShowScrollDownButtons ? (
+              {/* {shouldShowScrollDownButtons ? (
                 <div className="module-timeline__scrolldown-buttons">
                   {unreadMentionsCount ? (
                     <ScrollDownButton
@@ -1178,7 +1203,7 @@ export class Timeline extends React.Component<
                     i18n={i18n}
                   />
                 </div>
-              ) : null}
+              ) : null} */}
             </div>
           )}
         </SizeObserver>
